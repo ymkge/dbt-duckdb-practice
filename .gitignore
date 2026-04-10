@@ -1,0 +1,18 @@
+# Python
+venv/
+*.py[cod]
+*$py.class
+__pycache__/
+
+# dbt
+target/
+dbt_packages/
+dbt_modules/
+logs/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
