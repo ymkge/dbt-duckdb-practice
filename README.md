@@ -1,70 +1,68 @@
-## セットアップ手順
+# dbt DuckDB Practice
 
-### ステップ1：AWS環境の準備
-1. **Redshift Serverless のセットアップ**
-   - AWSコンソールから「Redshift Serverless」を選択。
-   - ワークグループとネームスペースを作成。
-   - 外部から接続可能なように「ネットワークとセキュリティ」設定で「パブリックアクセス」をオンにする。
-2. **IAMユーザーの作成**
-   - 接続用のIAMユーザーを作成し、`AmazonRedshiftFullAccess` 権限を付与。
-   - プログラムによるアクセス（Access Key / Secret Key）を取得。
+このプロジェクトは、dbt (data build tool) と DuckDB を組み合わせてデータ変換の練習を行うためのリポジトリです。
 
-### ステップ2：ローカル環境の構築
-1. **Python仮想環境の作成と有効化**
+## 1. プロジェクト構成
+
+```text
+/
+├── dbt_project/          # dbt プロジェクトのメインディレクトリ
+│   ├── dbt_project.yml   # プロジェクト設定
+│   ├── dev.duckdb        # DuckDB データベースファイル
+│   ├── models/           # SQLモデル
+│   ├── seeds/            # CSVデータ
+│   └── ...
+├── venv/                 # Python 仮想環境
+├── README.md             # 本ファイル
+└── SETUP_LOG.md          # セットアップ記録
+```
+
+## 2. セットアップ手順
+
+### ステップ1：環境の準備
+1. **Python仮想環境の有効化**
    ```bash
-   python -m venv venv
    source venv/bin/activate  # Windowsの場合: .\venv\Scripts\activate
    ```
-2. **dbt-redshift のインストール**
+
+2. **dbt-duckdb のインストール**
    ```bash
-   pip install --upgrade pip
-   pip install dbt-redshift
+   pip install dbt-duckdb
    ```
 
-### ステップ3：接続設定 (profiles.yml)
-dbtはデフォルトで `~/.dbt/profiles.yml` を参照します。このファイルを作成し、以下の内容を記述します。
-※ `dbt_project.yml` 内の `profile:` 名（デフォルトはプロジェクト名）と一致させる必要があります。
+### ステップ2：接続設定 (profiles.yml)
+dbtは `~/.dbt/profiles.yml` を参照します。DuckDBを使用するために以下の設定を追加または作成してください。
 
 ```yaml
-dbt_redshift_practice:
+dbt_duckdb_practice:
   outputs:
     dev:
-      type: redshift
-      method: database
-      host: [Redshiftのワークグループエンドポイント]
-      user: [設定したユーザー名]
-      password: [設定したパスワード]
-      port: 5439
-      dbname: dev
-      schema: public  # 開発用スキーマ
+      type: duckdb
+      path: /Users/ymto/Documents/git/dbt-duckdb-practice/dbt_project/dev.duckdb
       threads: 4
   target: dev
 ```
+※ `path` は実際の環境に合わせて絶対パスで指定することを推奨します。
 
-### ステップ4：dbtの初期化と接続確認
+### ステップ3：接続確認
 ```bash
-# プロジェクトディレクトリ内へ移動（dbt init済みの場合）
 cd dbt_project
-
-# 接続テストの実行
 dbt debug
 ```
 
-## 5. 基本的なコマンド
-- `dbt seed`: `seeds/` ディレクトリ内のCSVをRedshiftにテーブルとしてロード
-- `dbt run`: `models/` 内のSQLを実行してテーブル/ビューを作成
-- `dbt test`: `schema.yml` に定義したテストを実行
-- `dbt docs generate`: ドキュメントを生成
-- `dbt docs serve`: 生成したドキュメントをローカルブラウザで表示
+## 3. 基本的なコマンド
+- `dbt seed`: `seeds/` 内のCSVをDuckDBにロード
+- `dbt run`: モデルの実行（テーブル/ビューの作成）
+- `dbt test`: テストの実行
+- `dbt docs generate`: ドキュメント生成
+- `dbt docs serve`: ドキュメントの表示
 
-## 6. 学習ロードマップ（Todo）
-- [ ] `dbt seed` で初期データをロードする
-- [ ] `sources.yml` を定義してソースデータを管理する
-- [ ] **Staging層**: ソースデータの型変換やリネームを実施
-- [ ] **Mart層**: `ref` 関数を用いてテーブル間を結合し、分析用モデルを作成
-- [ ] Generic Tests (unique, not_null) の実装
-- [ ] GitHub Actions を用いた CI（Pull Request時の `dbt compile`）の構築
+## 4. 学習ロードマップ（Todo）
+- [ ] `dbt seed` でサンプルデータをロード
+- [ ] `sources.yml` の定義
+- [ ] Staging層 / Mart層の構築
+- [ ] DuckDB固有の機能（S3/Parquet読み込みなど）の試行
 
-## 7. 参考リソース
+## 5. 参考リソース
+- [dbt-duckdb Adapter Documentation](https://github.com/jwills/dbt-duckdb)
 - [dbt Documentation](https://docs.getdbt.com/)
-- [dbt-redshift setup guide](https://docs.getdbt.com/docs/core/connect-data-platform/redshift-setup)
